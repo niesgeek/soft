@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>装机必备软件合集</title>
+    <meta
+      name="description"
+      content="为新装的 Windows 准备一套常用软件。按分类浏览，链接尽量指向官方页面。"
+    />
+    <meta name="theme-color" content="#f3efe6" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("soft-theme");
+          var theme =
+            stored === "light" || stored === "dark"
+              ? stored
+              : matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light";
+          document.documentElement.dataset.theme = theme;
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute("content", theme === "dark" ? "#12110e" : "#f3efe6");
+        } catch (error) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
