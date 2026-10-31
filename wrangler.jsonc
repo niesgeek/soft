@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "soft",
+  "pages_build_output_dir": "./dist",
+  // Newest date supported by the Wrangler 4.156 workerd binary. Advance this
+  // when upgrading Wrangler if a newer compatibility date is available.
+  "compatibility_date": "2026-10-30",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true,
+    "traces": {
+      "enabled": true
+    }
+  },
+  // Create the namespace first:
+  //   npx wrangler kv namespace create SOFTWARE_KV
+  // Then replace the placeholder id below. Reads fall back to data/software.json
+  // until that namespace contains a catalog. Writes require this binding.
+  "kv_namespaces": [
+    {
+      "binding": "SOFTWARE_KV",
+      "id": "00000000000000000000000000000000"
+    }
+  ],
+  "secrets": {
+    "required": ["ADMIN_PASSWORD"]
+  }
+}
