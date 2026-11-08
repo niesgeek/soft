@@ -19,7 +19,7 @@ export function Header({
       <div className="header-inner">
         <TextLink href="/" className="brand">
           <span className="mark" aria-hidden="true">
-            <ListMark />
+            <AppMark />
           </span>
           <span className="brand-text">
             <span className="brand-title">装机必备</span>
@@ -57,16 +57,13 @@ export function Header({
   );
 }
 
-function ListMark() {
+function AppMark() {
   return (
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-      <path
-        d="M2 4.5h12M2 8h12M2 11.5h8"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+      <rect x="1" y="1" width="6" height="6" rx="1.2" fill="currentColor" />
+      <rect x="9" y="1" width="6" height="6" rx="1.2" fill="currentColor" />
+      <rect x="1" y="9" width="6" height="6" rx="1.2" fill="currentColor" />
+      <rect x="9" y="9" width="6" height="6" rx="1.2" fill="currentColor" />
     </svg>
   );
 }

@@ -5,12 +5,25 @@ import { Header } from "../components/Header";
 import { SoftwareCard } from "../components/SoftwareCard";
 import { loadPublicCatalog } from "../lib/api";
 
+type CatalogView = "card" | "list";
+
+const VIEW_KEY = "soft-view";
+
+function readView(): CatalogView {
+  try {
+    return localStorage.getItem(VIEW_KEY) === "list" ? "list" : "card";
+  } catch {
+    return "card";
+  }
+}
+
 export function HomePage() {
   const initial = new URLSearchParams(window.location.search);
   const [catalog, setCatalog] = useState<PublicCatalog | null>(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState(initial.get("q") ?? "");
   const [category, setCategory] = useState(initial.get("c") ?? "");
+  const [view, setView] = useState<CatalogView>(readView);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +81,15 @@ export function HomePage() {
   const total = filtered.reduce((sum, group) => sum + group.software.length, 0);
   const activeCategory = catalog?.categories.find((item) => item.slug === category);
 
+  function chooseView(next: CatalogView) {
+    setView(next);
+    try {
+      localStorage.setItem(VIEW_KEY, next);
+    } catch {
+      // Preference is optional when storage is blocked.
+    }
+  }
+
   return (
     <>
       <a className="skip" href="#content">
@@ -89,11 +111,10 @@ export function HomePage() {
               aria-pressed={!category}
               onClick={() => setCategory("")}
             >
-              <span className="index" aria-hidden="true" />
               <span className="cat-label">全部</span>
               <span className="count">{catalog ? catalog.software.length : ""}</span>
             </button>
-            {catalog?.categories.map((item, index) => (
+            {catalog?.categories.map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -101,9 +122,6 @@ export function HomePage() {
                 aria-pressed={category === item.slug}
                 onClick={() => setCategory(item.slug)}
               >
-                <span className="index" aria-hidden="true">
-                  {padIndex(index)}
-                </span>
                 <span className="cat-label">{item.name}</span>
                 <span className="count">
                   {catalog.software.filter((entry) => entry.categoryId === item.id).length}
@@ -116,26 +134,31 @@ export function HomePage() {
               <p>
                 {catalog ? (
                   <>
+                    {activeCategory ? activeCategory.name : "全部"}
+                    <span className="results-dot"> · </span>
                     <span className="count">{total}</span> 个软件
                   </>
                 ) : (
                   "正在加载"
                 )}
               </p>
-              {query || category ? (
-                <button
-                  type="button"
-                  className="text-btn"
-                  onClick={() => {
-                    setQuery("");
-                    setCategory("");
-                  }}
-                >
-                  清除筛选
-                </button>
-              ) : null}
+              <div className="results-tools">
+                {query || category ? (
+                  <button
+                    type="button"
+                    className="text-btn"
+                    onClick={() => {
+                      setQuery("");
+                      setCategory("");
+                    }}
+                  >
+                    清除筛选
+                  </button>
+                ) : null}
+                <ViewSwitch view={view} onChange={chooseView} />
+              </div>
             </div>
-            {!catalog && !error ? <SkeletonGrid /> : null}
+            {!catalog && !error ? <SkeletonGrid view={view} /> : null}
             {error ? (
               <div className="empty">
                 <p>{error}</p>
@@ -161,31 +184,27 @@ export function HomePage() {
             ) : null}
             {catalog && total > 0
               ? filtered.map((group) => (
-              <section key={group.category.id} className="group" aria-labelledby={`cat-${group.category.slug}`}>
-                <div className="group-head">
-                  <span className="index" aria-hidden="true">
-                    {padIndex(catalog.categories.findIndex((item) => item.id === group.category.id))}
-                  </span>
-                  <div>
-                    <h2 id={`cat-${group.category.slug}`}>{group.category.name}</h2>
-                    {group.category.description ? <p>{group.category.description}</p> : null}
-                  </div>
-                </div>
-                {group.software.length === 0 ? (
-                  <p className="group-note">这个分类还没有启用的软件。</p>
-                ) : (
-                  <div className="sheet">
-                    {group.software.map((item) => (
-                      <SoftwareCard
-                        key={item.id}
-                        item={item}
-                        categoryName={query && !activeCategory ? group.category.name : undefined}
-                      />
-                    ))}
-                  </div>
-                )}
-              </section>
-            ))
+                  <section key={group.category.id} className="group" aria-labelledby={`cat-${group.category.slug}`}>
+                    <div className="group-head">
+                      <h2 id={`cat-${group.category.slug}`}>{group.category.name}</h2>
+                      {group.category.description ? <p>{group.category.description}</p> : null}
+                    </div>
+                    {group.software.length === 0 ? (
+                      <p className="group-note">这个分类还没有启用的软件。</p>
+                    ) : (
+                      <div className={view === "list" ? "soft-list" : "soft-grid"}>
+                        {group.software.map((item) => (
+                          <SoftwareCard
+                            key={item.id}
+                            item={item}
+                            layout={view}
+                            categoryName={query && !activeCategory ? group.category.name : undefined}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                ))
               : null}
           </div>
         </div>
@@ -195,20 +214,59 @@ export function HomePage() {
   );
 }
 
+function ViewSwitch({ view, onChange }: { view: CatalogView; onChange: (view: CatalogView) => void }) {
+  return (
+    <div className="view-switch" role="group" aria-label="展示方式">
+      <button type="button" aria-pressed={view === "card"} onClick={() => onChange("card")}>
+        <GridIcon />
+        卡片
+      </button>
+      <button type="button" aria-pressed={view === "list"} onClick={() => onChange("list")}>
+        <RowsIcon />
+        列表
+      </button>
+    </div>
+  );
+}
+
+function GridIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <rect x="1.5" y="1.5" width="5" height="5" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="9.5" y="1.5" width="5" height="5" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="1.5" y="9.5" width="5" height="5" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function RowsIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path d="M2 4h12M2 8h12M2 12h12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function matches(item: PublicSoftware, category: PublicCategory, keyword: string): boolean {
   if (!keyword) return true;
   return `${item.name} ${item.description} ${category.name}`.toLowerCase().includes(keyword);
 }
 
-function padIndex(index: number): string {
-  return String(index + 1).padStart(2, "0");
-}
-
-function SkeletonGrid() {
+function SkeletonGrid({ view }: { view: CatalogView }) {
+  if (view === "list") {
+    return (
+      <div className="soft-list" aria-hidden="true">
+        {Array.from({ length: 6 }, (_, index) => (
+          <div key={index} className="soft is-list skeleton" />
+        ))}
+      </div>
+    );
+  }
   return (
-    <div className="sheet" aria-hidden="true">
-      {Array.from({ length: 6 }, (_, index) => (
-        <div key={index} className="row skeleton" />
+    <div className="soft-grid" aria-hidden="true">
+      {Array.from({ length: 8 }, (_, index) => (
+        <div key={index} className="soft skeleton" />
       ))}
     </div>
   );
