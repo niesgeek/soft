@@ -4,25 +4,31 @@ import { Icon } from "./Icon";
 export function SoftwareCard({
   item,
   categoryName,
+  layout,
 }: {
   item: PublicSoftware;
   categoryName?: string;
+  layout: "card" | "list";
 }) {
   const same = !item.homepage || item.homepage === item.downloadUrl;
   const primaryLabel = same && !isDirectDownload(item.downloadUrl) ? "打开" : "下载";
   return (
-    <article className="card">
-      <div className="card-top">
+    <article className={layout === "list" ? "soft is-list" : "soft"}>
+      <div className="soft-main">
         <div className="icon-plate">
           <Icon src={item.icon} name={item.name} />
         </div>
-        <div className="card-copy">
-          <h3>{item.name}</h3>
-          {categoryName ? <p className="card-cat">{categoryName}</p> : null}
-          <p className="card-desc">{item.description}</p>
+        <div className="soft-copy">
+          <div className="soft-title">
+            <h3>{item.name}</h3>
+            {categoryName ? <span className="soft-cat">{categoryName}</span> : null}
+          </div>
+          <p className="soft-desc" title={item.description}>
+            {item.description}
+          </p>
         </div>
       </div>
-      <div className="card-actions">
+      <div className="soft-actions">
         <a className="btn primary" href={item.downloadUrl} target="_blank" rel="noreferrer">
           {primaryLabel}
         </a>
