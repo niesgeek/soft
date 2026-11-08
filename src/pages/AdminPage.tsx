@@ -477,7 +477,7 @@ export function AdminPage() {
                   <input
                     value={filter}
                     onChange={(event) => setFilter(event.target.value)}
-                    placeholder="筛选名称"
+                    placeholder="筛选"
                     aria-label="筛选软件"
                   />
                   <button
@@ -753,7 +753,15 @@ function Modal({
         <div className="modal-head">
           <h2 id="modal-title">{title}</h2>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="关闭">
-            ×
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path
+                d="M6 6l12 12M18 6 6 18"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
           </button>
         </div>
         {children}

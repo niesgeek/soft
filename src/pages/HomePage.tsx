@@ -76,8 +76,7 @@ export function HomePage() {
       <Header query={query} onQuery={setQuery} />
       <main id="content" className="shell">
         <section className="intro">
-          <p className="eyebrow">Windows 装机</p>
-          <h1>常用软件，直达官方页面</h1>
+          <h1>新装 Windows，直达官方下载页</h1>
           <p className="lede">
             按分类挑一套干净的装机清单。旧站里的推广包和失效直链已经换成官方下载页，并补上现在常用的工具。
           </p>
@@ -87,19 +86,25 @@ export function HomePage() {
             <button
               type="button"
               className={category ? "cat" : "cat active"}
+              aria-pressed={!category}
               onClick={() => setCategory("")}
             >
-              <span>全部</span>
-              <span className="count">{catalog?.software.length ?? "–"}</span>
+              <span className="index" aria-hidden="true" />
+              <span className="cat-label">全部</span>
+              <span className="count">{catalog ? catalog.software.length : ""}</span>
             </button>
-            {catalog?.categories.map((item) => (
+            {catalog?.categories.map((item, index) => (
               <button
                 key={item.id}
                 type="button"
                 className={category === item.slug ? "cat active" : "cat"}
+                aria-pressed={category === item.slug}
                 onClick={() => setCategory(item.slug)}
               >
-                <span>{item.name}</span>
+                <span className="index" aria-hidden="true">
+                  {padIndex(index)}
+                </span>
+                <span className="cat-label">{item.name}</span>
                 <span className="count">
                   {catalog.software.filter((entry) => entry.categoryId === item.id).length}
                 </span>
@@ -109,8 +114,13 @@ export function HomePage() {
           <div className="results">
             <div className="results-bar">
               <p>
-                {activeCategory ? activeCategory.name : "全部分类"}
-                <span> · {catalog ? `${total} 个软件` : "正在加载"}</span>
+                {catalog ? (
+                  <>
+                    <span className="count">{total}</span> 个软件
+                  </>
+                ) : (
+                  "正在加载"
+                )}
               </p>
               {query || category ? (
                 <button
@@ -153,16 +163,18 @@ export function HomePage() {
               ? filtered.map((group) => (
               <section key={group.category.id} className="group" aria-labelledby={`cat-${group.category.slug}`}>
                 <div className="group-head">
-                  <h2 id={`cat-${group.category.slug}`} className={!activeCategory || query ? undefined : "sr-only"}>
-                    {group.category.name}
-                  </h2>
-                  {activeCategory && !query ? null : <p>{group.category.description}</p>}
+                  <span className="index" aria-hidden="true">
+                    {padIndex(catalog.categories.findIndex((item) => item.id === group.category.id))}
+                  </span>
+                  <div>
+                    <h2 id={`cat-${group.category.slug}`}>{group.category.name}</h2>
+                    {group.category.description ? <p>{group.category.description}</p> : null}
+                  </div>
                 </div>
-                {activeCategory && !query ? <p className="group-note">{group.category.description}</p> : null}
                 {group.software.length === 0 ? (
                   <p className="group-note">这个分类还没有启用的软件。</p>
                 ) : (
-                  <div className="grid">
+                  <div className="sheet">
                     {group.software.map((item) => (
                       <SoftwareCard
                         key={item.id}
@@ -188,11 +200,15 @@ function matches(item: PublicSoftware, category: PublicCategory, keyword: string
   return `${item.name} ${item.description} ${category.name}`.toLowerCase().includes(keyword);
 }
 
+function padIndex(index: number): string {
+  return String(index + 1).padStart(2, "0");
+}
+
 function SkeletonGrid() {
   return (
-    <div className="grid" aria-hidden="true">
-      {Array.from({ length: 8 }, (_, index) => (
-        <div key={index} className="card skeleton" />
+    <div className="sheet" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, index) => (
+        <div key={index} className="row skeleton" />
       ))}
     </div>
   );

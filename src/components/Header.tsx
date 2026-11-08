@@ -13,12 +13,13 @@ export function Header({
 }) {
   const { theme, toggleTheme } = useTheme();
   const nextLabel = theme === "dark" ? "切换到浅色模式" : "切换到深色模式";
+  const showKey = (query ?? "") === "";
   return (
     <header className="site-header">
       <div className="header-inner">
         <TextLink href="/" className="brand">
           <span className="mark" aria-hidden="true">
-            装
+            <ListMark />
           </span>
           <span className="brand-text">
             <span className="brand-title">装机必备</span>
@@ -30,17 +31,20 @@ export function Header({
             <label className="sr-only" htmlFor="site-search">
               搜索软件
             </label>
-            <svg viewBox="0 0 24 24" aria-hidden="true" className="search-icon">
-              <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
-              <path d="M16 16.5 20 20.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
+            <SearchIcon />
             <input
               id="site-search"
               value={query ?? ""}
               onChange={(event) => onQuery(event.target.value)}
-              placeholder="搜索名称或简介"
+              placeholder="搜索"
               autoComplete="off"
+              aria-keyshortcuts="/"
             />
+            {showKey ? (
+              <kbd className="keycap" aria-hidden="true">
+                /
+              </kbd>
+            ) : null}
           </form>
         ) : (
           <div className="header-note">{extra}</div>
@@ -53,14 +57,38 @@ export function Header({
   );
 }
 
+function ListMark() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+      <path
+        d="M2 4.5h12M2 8h12M2 11.5h8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" className="search-icon">
+      <circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M16 16.5 20 20.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function SunIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.8" />
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
       <path
         d="M12 3.5v1.8M12 18.7v1.8M3.5 12h1.8M18.7 12h1.8M6 6l1.3 1.3M16.7 16.7 18 18M18 6l-1.3 1.3M7.3 16.7 6 18"
+        fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.5"
         strokeLinecap="round"
       />
     </svg>
@@ -69,12 +97,12 @@ function SunIcon() {
 
 function MoonIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
       <path
         d="M15.5 3.8A7.8 7.8 0 1 0 20.2 14 6.2 6.2 0 0 1 15.5 3.8Z"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.5"
         strokeLinejoin="round"
       />
     </svg>
