@@ -4,14 +4,16 @@ import { Icon } from "./Icon";
 export function SoftwareCard({
   item,
   categoryName,
+  wide,
 }: {
   item: PublicSoftware;
   categoryName?: string;
+  wide?: boolean;
 }) {
   const same = !item.homepage || item.homepage === item.downloadUrl;
   const primaryLabel = same && !isDirectDownload(item.downloadUrl) ? "打开" : "下载";
   return (
-    <article className="card">
+    <article className={wide ? "card wide" : "card"}>
       <div className="card-top">
         <div className="icon-plate">
           <Icon src={item.icon} name={item.name} />

@@ -65,6 +65,25 @@ export function HomePage() {
       .filter((group) => (keyword ? group.software.length > 0 : true));
   }, [catalog, query, category]);
 
+  // 分类格按数量分级：最多的两类占 2×1，其余 1×1。
+  const wideCategorySlugs = useMemo(() => {
+    if (!catalog) return new Set<string>();
+    const counts = catalog.categories.map((item) => ({
+      slug: item.slug,
+      count: catalog.software.filter((entry) => entry.categoryId === item.id).length,
+    }));
+    counts.sort((a, b) => b.count - a.count);
+    return new Set(counts.slice(0, 2).map((item) => item.slug));
+  }, [catalog]);
+
+  const countFor = (categoryId: string) =>
+    catalog?.software.filter((entry) => entry.categoryId === categoryId).length ?? 0;
+
+  function pickCategory(slug: string) {
+    setCategory(slug);
+    document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   const total = filtered.reduce((sum, group) => sum + group.software.length, 0);
   const activeCategory = catalog?.categories.find((item) => item.slug === category);
 
@@ -75,82 +94,139 @@ export function HomePage() {
       </a>
       <Header query={query} onQuery={setQuery} />
       <main id="content" className="shell">
-        <section className="intro">
-          <p className="eyebrow">Windows 装机</p>
-          <h1>常用软件，直达官方页面</h1>
-          <p className="lede">
-            按分类挑一套干净的装机清单。旧站里的推广包和失效直链已经换成官方下载页，并补上现在常用的工具。
-          </p>
+        <section className="bento hero-bento" aria-label="关于本站">
+          <div className="hero">
+            <div>
+              <p className="eyebrow">Windows 装机</p>
+              <h1>常用软件，直达官方页面</h1>
+              <p className="lede">
+                按分类挑一套干净的装机清单。旧站里的推广包和失效直链已经换成官方下载页，并补上现在常用的工具。
+              </p>
+            </div>
+            <div className="hero-actions">
+              <a className="btn primary" href="#catalog">
+                开始挑软件
+              </a>
+            </div>
+          </div>
+          <div className="stat">
+            <p className="stat-num">
+              {catalog ? catalog.software.length : "–"}
+              <span className="unit"> 款</span>
+            </p>
+            <p className="stat-label">软件，全部直达官网</p>
+          </div>
+          <div className="stat">
+            <p className="stat-num">
+              {catalog ? catalog.categories.length : "–"}
+              <span className="unit"> 个</span>
+            </p>
+            <p className="stat-label">分类，按用途分好</p>
+          </div>
+          <div className="how">
+            <p>按分类挑一套清单，点下载直达官网，安装前自行核对。</p>
+            <p className="hint">
+              <span className="keycap">/</span> 按下 / 直接搜索
+            </p>
+          </div>
         </section>
-        <div className="layout">
-          <nav className="cats" aria-label="软件分类">
-            <button
-              type="button"
-              className={category ? "cat" : "cat active"}
-              onClick={() => setCategory("")}
-            >
-              <span>全部</span>
-              <span className="count">{catalog?.software.length ?? "–"}</span>
-            </button>
-            {catalog?.categories.map((item) => (
+
+        <div className="section-head">
+          <h2>分类</h2>
+          <p>
+            {category ? (
+              <button type="button" className="text-btn" onClick={() => setCategory("")}>
+                看全部
+              </button>
+            ) : (
+              "点一块格子，只看这个分类"
+            )}
+          </p>
+        </div>
+        <nav className="bento cats-bento" aria-label="软件分类">
+          {catalog?.categories.map((item) => {
+            const wide = wideCategorySlugs.has(item.slug);
+            return (
               <button
                 key={item.id}
                 type="button"
-                className={category === item.slug ? "cat active" : "cat"}
-                onClick={() => setCategory(item.slug)}
+                className={
+                  wide
+                    ? category === item.slug
+                      ? "cat-tile wide active"
+                      : "cat-tile wide"
+                    : category === item.slug
+                      ? "cat-tile active"
+                      : "cat-tile"
+                }
+                aria-pressed={category === item.slug}
+                onClick={() => pickCategory(category === item.slug ? "" : item.slug)}
               >
-                <span>{item.name}</span>
-                <span className="count">
-                  {catalog.software.filter((entry) => entry.categoryId === item.id).length}
-                </span>
+                {wide ? (
+                  <>
+                    <span className="cat-count">{countFor(item.id)}</span>
+                    <span className="cat-body">
+                      <span className="cat-name">{item.name}</span>
+                      <span className="cat-desc">{item.description}</span>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="cat-count">{countFor(item.id)}</span>
+                    <span className="cat-name">{item.name}</span>
+                    <span className="cat-desc">{item.description}</span>
+                  </>
+                )}
               </button>
-            ))}
-          </nav>
-          <div className="results">
-            <div className="results-bar">
-              <p>
-                {activeCategory ? activeCategory.name : "全部分类"}
-                <span> · {catalog ? `${total} 个软件` : "正在加载"}</span>
-              </p>
-              {query || category ? (
-                <button
-                  type="button"
-                  className="text-btn"
-                  onClick={() => {
-                    setQuery("");
-                    setCategory("");
-                  }}
-                >
-                  清除筛选
-                </button>
-              ) : null}
+            );
+          })}
+        </nav>
+
+        <div id="catalog" className="results">
+          <div className="results-bar">
+            <p>
+              {activeCategory ? activeCategory.name : "全部分类"}
+              <span> · {catalog ? `${total} 个软件` : "正在加载"}</span>
+            </p>
+            {query || category ? (
+              <button
+                type="button"
+                className="text-btn"
+                onClick={() => {
+                  setQuery("");
+                  setCategory("");
+                }}
+              >
+                清除筛选
+              </button>
+            ) : null}
+          </div>
+          {!catalog && !error ? <SkeletonGrid /> : null}
+          {error ? (
+            <div className="empty">
+              <p>{error}</p>
+              <button type="button" className="btn primary" onClick={() => window.location.reload()}>
+                重试
+              </button>
             </div>
-            {!catalog && !error ? <SkeletonGrid /> : null}
-            {error ? (
-              <div className="empty">
-                <p>{error}</p>
-                <button type="button" className="btn primary" onClick={() => window.location.reload()}>
-                  重试
-                </button>
-              </div>
-            ) : null}
-            {catalog && total === 0 ? (
-              <div className="empty">
-                <p>没有找到和「{query.trim() || activeCategory?.name}」相关的软件。</p>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => {
-                    setQuery("");
-                    setCategory("");
-                  }}
-                >
-                  看全部
-                </button>
-              </div>
-            ) : null}
-            {catalog && total > 0
-              ? filtered.map((group) => (
+          ) : null}
+          {catalog && total === 0 ? (
+            <div className="empty">
+              <p>没有找到和「{query.trim() || activeCategory?.name}」相关的软件。</p>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => {
+                  setQuery("");
+                  setCategory("");
+                }}
+              >
+                看全部
+              </button>
+            </div>
+          ) : null}
+          {catalog && total > 0
+            ? filtered.map((group) => (
               <section key={group.category.id} className="group" aria-labelledby={`cat-${group.category.slug}`}>
                 <div className="group-head">
                   <h2 id={`cat-${group.category.slug}`} className={!activeCategory || query ? undefined : "sr-only"}>
@@ -163,10 +239,11 @@ export function HomePage() {
                   <p className="group-note">这个分类还没有启用的软件。</p>
                 ) : (
                   <div className="grid">
-                    {group.software.map((item) => (
+                    {group.software.map((item, index) => (
                       <SoftwareCard
                         key={item.id}
                         item={item}
+                        wide={index === 0 && group.software.length >= 4}
                         categoryName={query && !activeCategory ? group.category.name : undefined}
                       />
                     ))}
@@ -174,8 +251,7 @@ export function HomePage() {
                 )}
               </section>
             ))
-              : null}
-          </div>
+            : null}
         </div>
       </main>
       <Footer />
