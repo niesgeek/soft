@@ -5,18 +5,10 @@
   // Newest date supported by the Wrangler 4.156 workerd binary. Advance this
   // when upgrading Wrangler if a newer compatibility date is available.
   "compatibility_date": "2026-10-30",
-  "compatibility_flags": ["nodejs_compat"],
-  // 注意：Pages 构建校验不接受 observability / secrets 字段（2026-11-23 预览构建因此失败），
-  // 所以这两个配置只保留在 Workers 部署的说明里，不要加回本文件。ADMIN_PASSWORD 改在
-  // Cloudflare 控制台的 Variables and Secrets 里设置。
-  // Create the namespace first:
-  //   npx wrangler kv namespace create SOFTWARE_KV
-  // Then replace the placeholder id below. Reads fall back to data/software.json
-  // until that namespace contains a catalog. Writes require this binding.
-  "kv_namespaces": [
-    {
-      "binding": "SOFTWARE_KV",
-      "id": "00000000000000000000000000000000"
-    }
-  ]
+  "compatibility_flags": ["nodejs_compat"]
+  // 注意：不要把 observability / secrets / kv_namespaces 加回本文件。
+  // Pages 构建校验不接受 observability / secrets，发布 Function 时还会校验
+  // kv_namespaces 的 id 是否真实存在（2026-11-23 预览构建因此失败了两次）。
+  // KV 命名空间和 ADMIN_PASSWORD 改在 Cloudflare 控制台里建/设置；
+  // 没绑 KV 时接口按 README 的说法回退到 data/software.json。
 }
