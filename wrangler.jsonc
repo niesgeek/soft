@@ -6,12 +6,9 @@
   // when upgrading Wrangler if a newer compatibility date is available.
   "compatibility_date": "2026-10-30",
   "compatibility_flags": ["nodejs_compat"],
-  "observability": {
-    "enabled": true,
-    "traces": {
-      "enabled": true
-    }
-  },
+  // 注意：Pages 构建校验不接受 observability / secrets 字段（2026-11-23 预览构建因此失败），
+  // 所以这两个配置只保留在 Workers 部署的说明里，不要加回本文件。ADMIN_PASSWORD 改在
+  // Cloudflare 控制台的 Variables and Secrets 里设置。
   // Create the namespace first:
   //   npx wrangler kv namespace create SOFTWARE_KV
   // Then replace the placeholder id below. Reads fall back to data/software.json
@@ -21,8 +18,5 @@
       "binding": "SOFTWARE_KV",
       "id": "00000000000000000000000000000000"
     }
-  ],
-  "secrets": {
-    "required": ["ADMIN_PASSWORD"]
-  }
+  ]
 }
